@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -16,7 +15,6 @@ type Connection struct {
 }
 
 var dbConnection *Connection
-var ErrNotFound = errors.New("item not found")
 
 func Connect() {
 	// parse db config
@@ -48,6 +46,10 @@ func Connect() {
 	}
 
 	log.Infof("successfully connected to the postgres database")
+}
+
+func GetPool() *pgxpool.Pool {
+	return dbConnection.Pool
 }
 
 func CloseConnection() {

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/papetier/scraper/pkg/config"
 	"github.com/papetier/scraper/pkg/database"
+	"github.com/papetier/scraper/pkg/scraper"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,5 +14,10 @@ func main() {
 	database.Connect()
 	defer database.CloseConnection()
 
-	log.Infof("scraping...")
+	websiteList, err := database.GetWebsites()
+	if err != nil {
+		log.Fatalf("an error occurred fetching the website list: %v", err)
+	}
+
+	scraper.ScrapeAllEnabled(websiteList)
 }
