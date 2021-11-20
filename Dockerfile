@@ -18,7 +18,7 @@ RUN adduser \
 # Install git
 RUN apk add --no-cache git
 
-WORKDIR /crawler
+WORKDIR /scraper
 
 COPY go.mod .
 COPY go.sum .
@@ -36,8 +36,8 @@ FROM scratch as runner
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
-COPY --from=builder /crawler/build/crawler /crawler
+COPY --from=builder /scraper/build/scraper /scraper
 
 USER appuser:appuser
 
-ENTRYPOINT ["/crawler"]
+ENTRYPOINT ["/scraper"]

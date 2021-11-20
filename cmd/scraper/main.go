@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/papetier/crawler/pkg/config"
-	"github.com/papetier/crawler/pkg/database"
+	"github.com/papetier/scraper/pkg/config"
+	"github.com/papetier/scraper/pkg/database"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,5 +13,5 @@ func main() {
 	database.Connect()
 	defer database.CloseConnection()
 
-	log.Infof("crawling...")
+	log.Infof("scraping...")
 }

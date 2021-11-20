@@ -1,4 +1,4 @@
-module github.com/papetier/crawler
+module github.com/papetier/scraper
 
 go 1.17
 

@@ -11,8 +11,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     restart: unless-stopped
 
-  crawler:
-    image: registry.github.com/papetier/crawler:v0.1.0
+  scraper:
+    image: registry.github.com/papetier/scraper:v0.1.0
     environment:
       - LOG_LEVEL=debug
       - POSTGRES_DATABASE=postgres

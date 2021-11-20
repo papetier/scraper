@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/papetier/crawler/pkg/logger"
+	"github.com/papetier/scraper/pkg/logger"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
@@ -11,7 +11,7 @@ type Environment string
 
 const (
 	DefaultEnvironment = "local"
-	EnvironmentKey     = "CRAWLER_ENVIRONMENT"
+	EnvironmentKey     = "scraper_ENVIRONMENT"
 )
 
 func Load() {

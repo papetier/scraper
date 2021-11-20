@@ -22,7 +22,7 @@ const (
 	binaryPathLocal = buildPath + "/waiter_local"
 	buildPath       = "build"
 	cmdPath         = "./cmd/server"
-	packageName     = "github.com/papetier/crawler"
+	packageName     = "github.com/papetier/scraper"
 	prodArch        = "amd64"
 	prodOs          = "linux"
 )
