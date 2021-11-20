@@ -1,7 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"github.com/papetier/crawler/pkg/config"
+	"github.com/papetier/crawler/pkg/database"
+	log "github.com/sirupsen/logrus"
+)
 
 func main() {
-	fmt.Println("crawling")
+	config.Load()
+
+	// connect to the DB
+	database.Connect()
+	defer database.CloseConnection()
+
+	log.Infof("crawling...")
 }
