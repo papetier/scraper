@@ -14,10 +14,13 @@ func main() {
 	database.Connect()
 	defer database.CloseConnection()
 
+	// setup scrapers
+	scraper.Setup()
+
 	websiteList, err := database.GetWebsites()
 	if err != nil {
 		log.Fatalf("an error occurred fetching the website list: %v", err)
 	}
 
-	scraper.ScrapeAllEnabled(websiteList)
+	scraper.ScrapeWebsites(websiteList)
 }

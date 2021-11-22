@@ -3,6 +3,8 @@ module github.com/papetier/scraper
 go 1.17
 
 require (
+	github.com/georgysavva/scany v0.2.9
+	github.com/gocolly/colly/v2 v2.1.0
 	github.com/jackc/pgtype v1.9.0
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/magefile/mage v1.11.0
@@ -16,15 +18,11 @@ require (
 	github.com/antchfx/htmlquery v1.2.4 // indirect
 	github.com/antchfx/xmlquery v1.3.8 // indirect
 	github.com/antchfx/xpath v1.2.0 // indirect
-	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/georgysavva/scany v0.2.9 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gocolly/colly/v2 v2.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/gorilla/css v1.0.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.10.1 // indirect
@@ -35,7 +33,6 @@ require (
 	github.com/jackc/puddle v1.2.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/microcosm-cc/bluemonday v1.0.16 // indirect
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

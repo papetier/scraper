@@ -1,15 +1,16 @@
-package scraper
+package storage
 
 import (
 	"context"
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/papetier/scraper/pkg/database"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/url"
 	"strconv"
 	"sync"
 )
+
 
 const visitedTable = "colly_storage_visited_pages"
 const cookiesTable = "colly_storage_cookies"
@@ -23,7 +24,16 @@ type Storage struct {
 	CookiesTable string
 }
 
+var DbStorage *Storage
+
 var once sync.Once
+
+func SetupSDBStorage() {
+	DbStorage = &Storage{
+		VisitedTable: visitedTable,
+		CookiesTable: cookiesTable,
+	}
+}
 
 func prepareDB(s *Storage) {
 	once.Do(func() {
