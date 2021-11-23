@@ -15,14 +15,14 @@ type WebsiteCollector struct {
 func (wc *WebsiteCollector) AddUrl(url string) {
 	err := wc.Collector.Visit(url)
 	if err != nil {
-		log.Errorf("%s collector encountered an error when fetching %s\nError: %v", wc.Website.Domain, url, err)
+		log.Errorf("%s collector encountered an error when fetching %s\nError: %v", wc.Website.Name, url, err)
 	}
 }
 
 func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOption) *WebsiteCollector {
 	// new colly collector
 	collectorOptions := options
-	collectorOptions = append(collectorOptions, colly.AllowedDomains(website.Domain))
+	collectorOptions = append(collectorOptions, colly.AllowedDomains(website.DomainList...))
 	c := colly.NewCollector(collectorOptions...)
 
 	// storage set up

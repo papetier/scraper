@@ -37,6 +37,7 @@ func scrape(website *database.Website, wg *sync.WaitGroup) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		log.Info("categories successfully loaded --------- now starting scraper!")
 		arxiv.SetupCollector(wc.Collector)
 	}
 

@@ -1,6 +1,6 @@
 package database
 
-type EprintArxiv struct {
+type ArxivEprint struct {
 	Id ID `db:"id"`
 
 	ArxivId string `db:"arxiv_id"`
@@ -15,6 +15,6 @@ type EprintArxiv struct {
 
 	EprintId ID `db:"eprint_id"`
 
-	EPrint *Eprint
+	EPrint          *Eprint
 	ArxivCategories []*ArxivCategory
 }
