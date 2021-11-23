@@ -66,53 +66,53 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 		return fmt.Errorf("inserting the arXiv's archives into the database: %w", err)
 	}
 
-	updatedArchiveCount := 0
+	insertedArchiveCount := 0
+	var insertedArchiveIdList []ID
 	for archiveRows.Next() {
-		err = archiveRows.Scan(&archiveList[updatedArchiveCount].Id)
+		err = archiveRows.Scan(&insertedArchiveIdList[insertedArchiveCount])
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's archive ids: %w", err)
 		}
-
-		// update categories with the archive ids
-		updateArchiveReferenceInArxivCategories(archiveList[updatedArchiveCount])
-
-		updatedArchiveCount++
+		insertedArchiveCount++
 	}
 
-	if updatedArchiveCount < len(archiveList) {
-		arxivArchiveIdMapByCode, err := getArxivArchiveIdMapByCode()
-		if err != nil {
-			return fmt.Errorf("fetching the group ids: %w", err)
-		}
-
-		for i, archive := range archiveList {
-			if archive.Id == 0 {
-				archive.Id = arxivArchiveIdMapByCode[archive.OriginalArxivArchiveCode]
-			}
-			// update archives with the group ids
+	if insertedArchiveCount == len(archiveList) {
+		for i, id := range insertedArchiveIdList {
+			archiveList[i].Id = id
 			updateArchiveReferenceInArxivCategories(archiveList[i])
+		}
+	} else {
+		err = fetchArxivArchiveIds(archiveList)
+		if err != nil {
+			return fmt.Errorf("fetching the arXiv's archive ids: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func getArxivArchiveIdMapByCode() (map[string]ID, error) {
+func fetchArxivArchiveIds(archiveList []*ArxivArchive) error {
 	query := "SELECT id, original_arxiv_archive_code FROM " + arxivArchivesTable
-	var arxivArchiveList []*ArxivArchive
-	err := pgxscan.Select(context.Background(), dbConnection.Pool, &arxivArchiveList, query)
+	var fetchedArchiveList []*ArxivArchive
+	err := pgxscan.Select(context.Background(), dbConnection.Pool, &fetchedArchiveList, query)
 	if err != nil {
-		return nil, fmt.Errorf("scanning the arxiv archive list: %w", err)
+		return fmt.Errorf("scanning the arxiv archive list: %w", err)
 	}
 
 	arxivArchiveIdMapByCode := make(map[string]ID)
-	for _, arxivArchive := range arxivArchiveList {
+	for _, arxivArchive := range fetchedArchiveList {
 		arxivArchiveIdMapByCode[arxivArchive.OriginalArxivArchiveCode] = arxivArchive.Id
 	}
 
-	return arxivArchiveIdMapByCode,nil
-}
+	for _, archive := range archiveList {
+		if archive.Id == 0 {
+			archive.Id = arxivArchiveIdMapByCode[archive.OriginalArxivArchiveCode]
+		}
+		updateArchiveReferenceInArxivCategories(archive)
+	}
 
+	return nil
+}
 
 func updateArchiveReferenceInArxivCategories(archive *ArxivArchive) {
 	for _, category := range archive.ArxivCategories {

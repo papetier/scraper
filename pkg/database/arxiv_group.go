@@ -39,31 +39,25 @@ func SaveArxivGroupsArchivesAndCategories(groupList []*ArxivGroup) error {
 		return fmt.Errorf("inserting the arXiv's groups into the database: %w", err)
 	}
 
-	updatedGroupCount := 0
+	insertedGroupCount := 0
+	var insertedGroupIdList []ID
 	for groupRows.Next() {
-		err = groupRows.Scan(&groupList[updatedGroupCount].Id)
+		err = groupRows.Scan(&insertedGroupIdList[insertedGroupCount])
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's group ids: %w", err)
 		}
-
-		// update archives with the group ids
-		updateGroupReferenceInArxivArchive(groupList[updatedGroupCount])
-
-		updatedGroupCount++
+		insertedGroupCount++
 	}
 
-	if updatedGroupCount < len(groupList) {
-		arxivGroupIdMapByName, err := getArxivGroupIdMapByName()
-		if err != nil {
-			return fmt.Errorf("fetching the group ids: %w", err)
-		}
-
-		for i, group := range groupList {
-			if group.Id == 0 {
-				group.Id = arxivGroupIdMapByName[group.OriginalArxivGroupName]
-			}
-			// update archives with the group ids
+	if insertedGroupCount == len(groupList) {
+		for i, id := range insertedGroupIdList {
+			groupList[i].Id = id
 			updateGroupReferenceInArxivArchive(groupList[i])
+		}
+	} else {
+		err = fetchArxivGroupIds(groupList)
+		if err != nil {
+			return fmt.Errorf("fetching the arXiv's group ids: %w", err)
 		}
 	}
 
@@ -92,20 +86,27 @@ func SaveArxivGroupsArchivesAndCategories(groupList []*ArxivGroup) error {
 	return nil
 }
 
-func getArxivGroupIdMapByName() (map[string]ID, error) {
+func fetchArxivGroupIds(groupList []*ArxivGroup) error {
 	query := "SELECT id, original_arxiv_group_name FROM " + arxivGroupsTable
-	var arxivGroupList []*ArxivGroup
-	err := pgxscan.Select(context.Background(), dbConnection.Pool, &arxivGroupList, query)
+	var fetchedGroupList []*ArxivGroup
+	err := pgxscan.Select(context.Background(), dbConnection.Pool, &fetchedGroupList, query)
 	if err != nil {
-		return nil, fmt.Errorf("scanning the arxiv group list: %w", err)
+		return fmt.Errorf("scanning the arXiv's group list: %w", err)
 	}
 
 	arxivGroupIdMapByName := make(map[string]ID)
-	for _, arxivGroup := range arxivGroupList {
+	for _, arxivGroup := range fetchedGroupList {
 		arxivGroupIdMapByName[arxivGroup.OriginalArxivGroupName] = arxivGroup.Id
 	}
 
-	return arxivGroupIdMapByName,nil
+	for _, group := range groupList {
+		if group.Id == 0 {
+			group.Id = arxivGroupIdMapByName[group.OriginalArxivGroupName]
+		}
+		updateGroupReferenceInArxivArchive(group)
+	}
+
+	return nil
 }
 
 func updateGroupReferenceInArxivArchive(group *ArxivGroup) {

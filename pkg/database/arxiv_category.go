@@ -52,43 +52,48 @@ func saveArxivCategories(categoryList []*ArxivCategory) error {
 		return fmt.Errorf("inserting the arXiv's categories into the database: %w", err)
 	}
 
-	updatedCategoryCount := 0
+	insertedCategoryCount := 0
+	var insertedCategoryIdList []ID
 	for categoryRows.Next() {
-		err = categoryRows.Scan(&categoryList[updatedCategoryCount].Id)
+		err = categoryRows.Scan(&insertedCategoryIdList[insertedCategoryCount])
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's category ids: %w", err)
 		}
-		updatedCategoryCount++
+		insertedCategoryCount++
 	}
 
-	if updatedCategoryCount < len(categoryList) {
-		arxivArchiveIdMapByCode, err := getArxivCategoryIdMapByCode()
-		if err != nil {
-			return fmt.Errorf("fetching the group ids: %w", err)
+	if insertedCategoryCount == len(categoryList) {
+		for i, id := range insertedCategoryIdList {
+			categoryList[i].Id = id
 		}
-
-		for _, category := range categoryList {
-			if category.Id == 0 {
-				category.Id = arxivArchiveIdMapByCode[category.OriginalArxivCategoryCode]
-			}
+	} else {
+		err = fetchArxivCategoryIds(categoryList)
+		if err != nil {
+			return fmt.Errorf("fetching the arXiv's category ids: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func getArxivCategoryIdMapByCode() (map[string]ID, error) {
+func fetchArxivCategoryIds(categoryList []*ArxivCategory) error {
 	query := "SELECT id, original_arxiv_category_code FROM " + arxivCategoriesTable
-	var arxivCategoryList []*ArxivCategory
-	err := pgxscan.Select(context.Background(), dbConnection.Pool, &arxivCategoryList, query)
+	var fetchedCategoryList []*ArxivCategory
+	err := pgxscan.Select(context.Background(), dbConnection.Pool, &fetchedCategoryList, query)
 	if err != nil {
-		return nil, fmt.Errorf("scanning the arxiv category list: %w", err)
+		return fmt.Errorf("scanning the arxiv category list: %w", err)
 	}
 
 	arxivCategoryIdMapByCode := make(map[string]ID)
-	for _, arxivCategory := range arxivCategoryList {
+	for _, arxivCategory := range fetchedCategoryList {
 		arxivCategoryIdMapByCode[arxivCategory.OriginalArxivCategoryCode] = arxivCategory.Id
 	}
 
-	return arxivCategoryIdMapByCode,nil
+	for _, category := range categoryList {
+		if category.Id == 0 {
+			category.Id = arxivCategoryIdMapByCode[category.OriginalArxivCategoryCode]
+		}
+	}
+
+	return nil
 }
