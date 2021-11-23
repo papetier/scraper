@@ -65,9 +65,14 @@ func saveOrganisationsTx(tx pgx.Tx, organisationList []*Organisation) error {
 }
 
 func fetchAndUpdateOrganisationIdsTx(tx pgx.Tx, organisationList []*Organisation) error {
-	query := "SELECT id, name FROM " + organisationsTable
+	placeholder := generateInsertPlaceholder(len(organisationList), 1, 1)
+	query := "SELECT id, full_name FROM " + authorsTable + " WHERE full_name IN " + placeholder
+	var parameters []interface{}
+	for _, organisation := range organisationList {
+		parameters = append(parameters, organisation.Name)
+	}
 	var fetchedOrganisationList []*Organisation
-	err := pgxscan.Select(context.Background(), tx, &fetchedOrganisationList, query)
+	err := pgxscan.Select(context.Background(), tx, &fetchedOrganisationList, query, parameters...)
 	if err != nil {
 		return fmt.Errorf("scanning the organisation list: %w", err)
 	}

@@ -117,9 +117,14 @@ func saveAuthorsTx(tx pgx.Tx, authorList []*Author) error {
 }
 
 func fetchAndUpdateAuthorIdsTx(tx pgx.Tx, authorList []*Author) error {
-	query := "SELECT id, full_name FROM " + authorsTable
+	placeholder := generateInsertPlaceholder(len(authorList), 1, 1)
+	query := "SELECT id, full_name FROM " + authorsTable + " WHERE full_name IN " + placeholder
+	var parameters []interface{}
+	for _, author := range authorList {
+		parameters = append(parameters, author.FullName)
+	}
 	var fetchedAuthorList []*Author
-	err := pgxscan.Select(context.Background(), tx, &fetchedAuthorList, query)
+	err := pgxscan.Select(context.Background(), tx, &fetchedAuthorList, query, parameters...)
 	if err != nil {
 		return fmt.Errorf("scanning the author list: %w", err)
 	}
