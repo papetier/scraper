@@ -13,10 +13,7 @@ type WebsiteCollector struct {
 }
 
 func (wc *WebsiteCollector) AddUrl(url string) {
-	err := wc.Collector.Visit(url)
-	if err != nil {
-		log.Errorf("%s collector encountered an error when fetching %s\nError: %v", wc.Website.Name, url, err)
-	}
+	wc.Collector.Visit(url)
 }
 
 func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOption) *WebsiteCollector {
@@ -36,7 +33,7 @@ func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOp
 		log.Infof("fetching: %s", r.URL)
 	})
 	c.OnError(func(r *colly.Response, err error) {
-		log.Warnf("request URL: %v failed with response: %v\nError: %v", r.Request.URL.String(), r, err)
+		log.WithField("collector", website.Name).Errorf("request URL: %v failed with HTTP status %v: %s", r.Request.URL.String(), r.StatusCode, err)
 	})
 	c.OnScraped(onScraped())
 
@@ -48,6 +45,6 @@ func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOp
 
 func onScraped() func(r *colly.Response) {
 	return func(r *colly.Response) {
-		log.Infof("finished scraping: %s", r.Request.URL.String())
+		log.Debugf("finished: %s", r.Request.URL.String())
 	}
 }

@@ -41,6 +41,8 @@ func entryParser(e *colly.XMLElement) {
 	idParsingResult := strings.Split(id, arxivAbstractUrl)
 	if len(idParsingResult) < 2 {
 		log.Errorf("unexpected arxiv id format: %s", id)
+		handleErrorEntry(e)
+		return
 	} else {
 		arxivId := idParsingResult[1]
 		log.Debugf("parsing entry element %s", arxivId)
@@ -165,6 +167,6 @@ func getAuthorNameAndAffiliation(e *colly.XMLElement, authorIndex int) (string, 
 }
 
 func handleErrorEntry(e *colly.XMLElement) {
-	// TODO
-	log.Infof("an error occurred")
+	summary := e.ChildText("summary")
+	log.Errorf("the query URL was malformed and the arXiv's API answered with an error: %s", summary)
 }
