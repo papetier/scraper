@@ -17,7 +17,7 @@ type ArxivGroup struct {
 
 const arxivGroupsTable = "arxiv_groups"
 
-var arxivGroupColumns = []string{
+var arxivGroupsColumns = []string{
 	"id",
 	"original_arxiv_group_name",
 }
@@ -30,8 +30,8 @@ func SaveArxivGroupsArchivesAndCategories(groupList []*ArxivGroup) error {
 		groupValues = append(groupValues, group.OriginalArxivGroupName)
 	}
 
-	groupPlaceholder := generateInsertPlaceholder(len(arxivGroupColumns[1:]), len(groupList), 1)
-	groupsQuery := "INSERT INTO " + arxivGroupsTable + " (" + strings.Join(arxivGroupColumns[1:], ", ") + ") VALUES " + groupPlaceholder + " ON CONFLICT DO NOTHING RETURNING id"
+	groupPlaceholder := generateInsertPlaceholder(len(arxivGroupsColumns[1:]), len(groupList), 1)
+	groupsQuery := "INSERT INTO " + arxivGroupsTable + " (" + strings.Join(arxivGroupsColumns[1:], ", ") + ") VALUES " + groupPlaceholder + " ON CONFLICT DO NOTHING RETURNING id"
 
 	groupRows, err := dbConnection.Pool.Query(context.Background(), groupsQuery, groupValues...)
 	defer groupRows.Close()
@@ -42,7 +42,9 @@ func SaveArxivGroupsArchivesAndCategories(groupList []*ArxivGroup) error {
 	insertedGroupCount := 0
 	var insertedGroupIdList []ID
 	for groupRows.Next() {
-		err = groupRows.Scan(&insertedGroupIdList[insertedGroupCount])
+		var id ID
+		err = groupRows.Scan(&id)
+		insertedGroupIdList = append(insertedGroupIdList, id)
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's group ids: %w", err)
 		}
@@ -55,7 +57,7 @@ func SaveArxivGroupsArchivesAndCategories(groupList []*ArxivGroup) error {
 			updateGroupReferenceInArxivArchive(groupList[i])
 		}
 	} else {
-		err = fetchArxivGroupIds(groupList)
+		err = fetchAndUpdateArxivGroupIds(groupList)
 		if err != nil {
 			return fmt.Errorf("fetching the arXiv's group ids: %w", err)
 		}
@@ -86,7 +88,7 @@ func SaveArxivGroupsArchivesAndCategories(groupList []*ArxivGroup) error {
 	return nil
 }
 
-func fetchArxivGroupIds(groupList []*ArxivGroup) error {
+func fetchAndUpdateArxivGroupIds(groupList []*ArxivGroup) error {
 	query := "SELECT id, original_arxiv_group_name FROM " + arxivGroupsTable
 	var fetchedGroupList []*ArxivGroup
 	err := pgxscan.Select(context.Background(), dbConnection.Pool, &fetchedGroupList, query)

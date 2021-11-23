@@ -21,7 +21,7 @@ type ArxivArchive struct {
 
 const arxivArchivesTable = "arxiv_archives"
 
-var arxivArchiveColumns = []string{
+var arxivArchivesColumns = []string{
 	"id",
 	"original_arxiv_archive_code",
 	"original_arxiv_archive_name",
@@ -57,8 +57,8 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 		archiveValues = append(archiveValues, archiveCode, archiveName, archive.ArxivGroupId)
 	}
 
-	archivePlaceholder := generateInsertPlaceholder(len(arxivArchiveColumns[1:]), len(archiveList), 1)
-	archivesQuery := "INSERT INTO " + arxivArchivesTable + " (" + strings.Join(arxivArchiveColumns[1:], ", ") + ") VALUES " + archivePlaceholder + " ON CONFLICT DO NOTHING RETURNING id"
+	archivePlaceholder := generateInsertPlaceholder(len(arxivArchivesColumns[1:]), len(archiveList), 1)
+	archivesQuery := "INSERT INTO " + arxivArchivesTable + " (" + strings.Join(arxivArchivesColumns[1:], ", ") + ") VALUES " + archivePlaceholder + " ON CONFLICT DO NOTHING RETURNING id"
 
 	archiveRows, err := dbConnection.Pool.Query(context.Background(), archivesQuery, archiveValues...)
 	defer archiveRows.Close()
@@ -69,7 +69,9 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 	insertedArchiveCount := 0
 	var insertedArchiveIdList []ID
 	for archiveRows.Next() {
-		err = archiveRows.Scan(&insertedArchiveIdList[insertedArchiveCount])
+		var id ID
+		err = archiveRows.Scan(&id)
+		insertedArchiveIdList = append(insertedArchiveIdList, id)
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's archive ids: %w", err)
 		}
@@ -82,7 +84,7 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 			updateArchiveReferenceInArxivCategories(archiveList[i])
 		}
 	} else {
-		err = fetchArxivArchiveIds(archiveList)
+		err = fetchAndUpdateArxivArchiveIds(archiveList)
 		if err != nil {
 			return fmt.Errorf("fetching the arXiv's archive ids: %w", err)
 		}
@@ -91,7 +93,7 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 	return nil
 }
 
-func fetchArxivArchiveIds(archiveList []*ArxivArchive) error {
+func fetchAndUpdateArxivArchiveIds(archiveList []*ArxivArchive) error {
 	query := "SELECT id, original_arxiv_archive_code FROM " + arxivArchivesTable
 	var fetchedArchiveList []*ArxivArchive
 	err := pgxscan.Select(context.Background(), dbConnection.Pool, &fetchedArchiveList, query)

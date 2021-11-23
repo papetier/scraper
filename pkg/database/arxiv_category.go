@@ -27,7 +27,7 @@ type ArxivCategory struct {
 
 const arxivCategoriesTable = "arxiv_categories"
 
-var arxivCategoryColumns = []string{
+var arxivCategoriesColumns = []string{
 	"id",
 	"original_arxiv_category_code",
 	"original_arxiv_category_description",
@@ -43,8 +43,8 @@ func saveArxivCategories(categoryList []*ArxivCategory) error {
 		categoryValues = append(categoryValues, category.OriginalArxivCategoryCode, category.OriginalArxivCategoryDescription, category.OriginalArxivCategoryName, category.ArxivArchiveId)
 	}
 
-	categoryPlaceholder := generateInsertPlaceholder(len(arxivCategoryColumns[1:]), len(categoryList), 1)
-	categoriesQuery := "INSERT INTO " + arxivCategoriesTable + " (" + strings.Join(arxivCategoryColumns[1:], ", ") + ") VALUES " + categoryPlaceholder + " ON CONFLICT DO NOTHING RETURNING id"
+	categoryPlaceholder := generateInsertPlaceholder(len(arxivCategoriesColumns[1:]), len(categoryList), 1)
+	categoriesQuery := "INSERT INTO " + arxivCategoriesTable + " (" + strings.Join(arxivCategoriesColumns[1:], ", ") + ") VALUES " + categoryPlaceholder + " ON CONFLICT DO NOTHING RETURNING id"
 
 	categoryRows, err := dbConnection.Pool.Query(context.Background(), categoriesQuery, categoryValues...)
 	defer categoryRows.Close()
@@ -55,7 +55,9 @@ func saveArxivCategories(categoryList []*ArxivCategory) error {
 	insertedCategoryCount := 0
 	var insertedCategoryIdList []ID
 	for categoryRows.Next() {
-		err = categoryRows.Scan(&insertedCategoryIdList[insertedCategoryCount])
+		var id ID
+		err = categoryRows.Scan(&id)
+		insertedCategoryIdList = append(insertedCategoryIdList, id)
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's category ids: %w", err)
 		}
@@ -67,7 +69,7 @@ func saveArxivCategories(categoryList []*ArxivCategory) error {
 			categoryList[i].Id = id
 		}
 	} else {
-		err = fetchArxivCategoryIds(categoryList)
+		err = fetchAndUpdateArxivCategoryIds(categoryList)
 		if err != nil {
 			return fmt.Errorf("fetching the arXiv's category ids: %w", err)
 		}
@@ -76,7 +78,7 @@ func saveArxivCategories(categoryList []*ArxivCategory) error {
 	return nil
 }
 
-func fetchArxivCategoryIds(categoryList []*ArxivCategory) error {
+func fetchAndUpdateArxivCategoryIds(categoryList []*ArxivCategory) error {
 	query := "SELECT id, original_arxiv_category_code FROM " + arxivCategoriesTable
 	var fetchedCategoryList []*ArxivCategory
 	err := pgxscan.Select(context.Background(), dbConnection.Pool, &fetchedCategoryList, query)

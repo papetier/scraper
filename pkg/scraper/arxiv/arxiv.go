@@ -51,7 +51,9 @@ func entryParser(e *colly.XMLElement) {
 
 	// parse doi
 	doi := e.ChildText("arxiv:doi")
-	paper.Doi = doi
+	if doi != "" {
+		paper.Doi = &doi
+	}
 
 	// parse abstract
 	abstract := e.ChildText("summary")
@@ -59,7 +61,9 @@ func entryParser(e *colly.XMLElement) {
 
 	// parse journal_ref
 	journalRef := e.ChildText("arxiv:journal_ref")
-	paper.JournalRef = journalRef
+	if journalRef != "" {
+		paper.JournalRef = &journalRef
+	}
 
 	// TODO: parse year
 
@@ -156,7 +160,10 @@ func entryParser(e *colly.XMLElement) {
 		}
 	}
 
-	// TODO: save arxivEprint and co
+	err = arxivEprint.SaveWithPaperAuthorsAndCategories()
+	if err != nil {
+		log.Errorf("saving the arXiv's eprint: %s", err)
+	}
 }
 
 func getAuthorNameAndAffiliation(e *colly.XMLElement, authorIndex int) (string, string) {
