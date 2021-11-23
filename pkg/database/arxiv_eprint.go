@@ -15,9 +15,9 @@ type ArxivEprint struct {
 	PublishedAt time.Time `db:"published_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 
-	EprintId ID `db:"eprint_id"`
+	PaperId ID `db:"paper_id"`
 
-	EPrint               *Eprint
+	Paper                *Paper
 	PrimaryArxivCategory *ArxivCategory
 	OtherArxivCategories []*ArxivCategory
 }

@@ -33,9 +33,7 @@ func entryParser(e *colly.XMLElement) {
 		Title: title,
 	}
 	arxivEprint := &database.ArxivEprint{
-		EPrint: &database.Eprint{
-			Paper: paper,
-		},
+		Paper: paper,
 	}
 
 	// parse id
