@@ -6,6 +6,7 @@ import (
 	"github.com/papetier/scraper/pkg/scraper/collector"
 	log "github.com/sirupsen/logrus"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -33,7 +34,7 @@ func categoriesParser(e *colly.HTMLElement) {
 	var arxivGroupList []*database.ArxivGroup
 	for _, groupName := range groupNameList {
 		arxivGroup := &database.ArxivGroup{
-			OriginalGroupName: groupName,
+			OriginalGroupName: strings.TrimSpace(groupName),
 		}
 		arxivGroupList = append(arxivGroupList, arxivGroup)
 	}
@@ -58,8 +59,8 @@ func categoriesParser(e *colly.HTMLElement) {
 				}
 				archiveName := result[1]
 				archiveCode := result[2]
-				arxivArchive.OriginalArxivArchiveName = archiveName
-				arxivArchive.OriginalArxivArchiveCode = archiveCode
+				arxivArchive.OriginalArxivArchiveName = strings.TrimSpace(archiveName)
+				arxivArchive.OriginalArxivArchiveCode = strings.TrimSpace(archiveCode)
 			}
 
 			var arxivCategoryList []*database.ArxivCategory
@@ -80,13 +81,13 @@ func categoriesParser(e *colly.HTMLElement) {
 					}
 					categoryName := result[2]
 					categoryCode := result[1]
-					arxivCategory.OriginalArxivCategoryCode = categoryCode
-					arxivCategory.OriginalArxivCategoryName = categoryName
+					arxivCategory.OriginalArxivCategoryCode = strings.TrimSpace(categoryCode)
+					arxivCategory.OriginalArxivCategoryName = strings.TrimSpace(categoryName)
 				}
 
 				// category description
 				categoryDescription := categoryBlock.ChildText("p")
-				arxivCategory.OriginalArxivCategoryDescription = categoryDescription
+				arxivCategory.OriginalArxivCategoryDescription = strings.TrimSpace(categoryDescription)
 
 				// add category to category list
 				arxivCategoryList = append(arxivCategoryList, arxivCategory)
