@@ -34,7 +34,7 @@ func categoriesParser(e *colly.HTMLElement) {
 	var arxivGroupList []*database.ArxivGroup
 	for _, groupName := range groupNameList {
 		arxivGroup := &database.ArxivGroup{
-			OriginalGroupName: strings.TrimSpace(groupName),
+			OriginalArxivGroupName: strings.TrimSpace(groupName),
 		}
 		arxivGroupList = append(arxivGroupList, arxivGroup)
 	}

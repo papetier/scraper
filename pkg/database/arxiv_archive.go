@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"github.com/georgysavva/scany/pgxscan"
 	log "github.com/sirupsen/logrus"
 	"strings"
 )
@@ -35,8 +36,9 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 		archiveName := archive.OriginalArxivArchiveName
 		if archiveName == "" {
 			// defaults to group's name
-			archiveName = archive.ArxivGroup.OriginalGroupName
+			archiveName = archive.ArxivGroup.OriginalArxivGroupName
 		}
+		archive.OriginalArxivArchiveName = archiveName
 
 		archiveCode := archive.OriginalArxivArchiveCode
 		if archiveCode == "" {
@@ -50,6 +52,7 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 			}
 			archiveCode = result[0]
 		}
+		archive.OriginalArxivArchiveCode = archiveCode
 
 		archiveValues = append(archiveValues, archiveCode, archiveName, archive.ArxivGroupId)
 	}
@@ -63,20 +66,56 @@ func saveArxivArchives(archiveList []*ArxivArchive) error {
 		return fmt.Errorf("inserting the arXiv's archives into the database: %w", err)
 	}
 
-	i := 0
+	updatedArchiveCount := 0
 	for archiveRows.Next() {
-		err = archiveRows.Scan(&archiveList[i].Id)
+		err = archiveRows.Scan(&archiveList[updatedArchiveCount].Id)
 		if err != nil {
 			return fmt.Errorf("scanning the arXiv's archive ids: %w", err)
 		}
 
 		// update categories with the archive ids
-		for _, category := range archiveList[i].ArxivCategories {
-			category.ArxivArchiveId = archiveList[i].Id
+		updateArchiveReferenceInArxivCategories(archiveList[updatedArchiveCount])
+
+		updatedArchiveCount++
+	}
+
+	if updatedArchiveCount < len(archiveList) {
+		arxivArchiveIdMapByCode, err := getArxivArchiveIdMapByCode()
+		if err != nil {
+			return fmt.Errorf("fetching the group ids: %w", err)
 		}
 
-		i++
+		for i, archive := range archiveList {
+			if archive.Id == 0 {
+				archive.Id = arxivArchiveIdMapByCode[archive.OriginalArxivArchiveCode]
+			}
+			// update archives with the group ids
+			updateArchiveReferenceInArxivCategories(archiveList[i])
+		}
 	}
 
 	return nil
+}
+
+func getArxivArchiveIdMapByCode() (map[string]ID, error) {
+	query := "SELECT id, original_arxiv_archive_code FROM " + arxivArchivesTable
+	var arxivArchiveList []*ArxivArchive
+	err := pgxscan.Select(context.Background(), dbConnection.Pool, &arxivArchiveList, query)
+	if err != nil {
+		return nil, fmt.Errorf("scanning the arxiv archive list: %w", err)
+	}
+
+	arxivArchiveIdMapByCode := make(map[string]ID)
+	for _, arxivArchive := range arxivArchiveList {
+		arxivArchiveIdMapByCode[arxivArchive.OriginalArxivArchiveCode] = arxivArchive.Id
+	}
+
+	return arxivArchiveIdMapByCode,nil
+}
+
+
+func updateArchiveReferenceInArxivCategories(archive *ArxivArchive) {
+	for _, category := range archive.ArxivCategories {
+		category.ArxivArchiveId = archive.Id
+	}
 }
