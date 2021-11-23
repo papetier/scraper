@@ -63,6 +63,33 @@ func entryParser(e *colly.XMLElement) {
 
 	// TODO: parse year
 
+	// parse authors
+	var authorList []*database.Author
+	authorIndex := 1
+	for {
+		authorName, authorAffiliation := getAuthorNameAndAffiliation(e, authorIndex)
+		if authorName == "" {
+			break
+		}
+
+		author := &database.Author{
+			FullName: authorName,
+		}
+
+		if authorAffiliation != "" {
+			organisation := &database.Organisation{
+				Name: authorAffiliation,
+			}
+			author.Organisations = []*database.Organisation{organisation}
+		}
+
+		authorList = append(authorList, author)
+		authorIndex++
+	}
+	if len(authorList) > 0 {
+		paper.Authors = authorList
+	}
+
 	// parse comment
 	comment := e.ChildText("arxiv:comment")
 	if comment != "" {
@@ -130,6 +157,13 @@ func entryParser(e *colly.XMLElement) {
 	}
 
 	// TODO: save arxivEprint and co
+}
+
+func getAuthorNameAndAffiliation(e *colly.XMLElement, authorIndex int) (string, string) {
+	xpathQuery := "author[" + strconv.Itoa(authorIndex) + "]"
+	name := e.ChildText(xpathQuery + "/name")
+	affiliation := e.ChildText(xpathQuery + "/arxiv:affiliation")
+	return name, affiliation
 }
 
 func handleErrorEntry(e *colly.XMLElement) {
