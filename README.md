@@ -20,11 +20,11 @@ SCRAPER_ENVIRONMENT="prod" go run cmd/server/main.go
 
 If `SCRAPER_ENVIRONMENT` isn't set, the config will read the settings from `local.env` by default.
 
-> All `.env` (except `example.env`) files are ignored by git to avoid any exposing credentials.
+> All `.env` (except `example.env`) files are ignored by git to avoid exposing any credentials.
 
 ## Commands
 
-The repository exposes 2 commands defined in the `cmd` folder.
+The repository exposes 1 command defined in the `cmd` folder.
 
 ### `scraper`
 

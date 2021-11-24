@@ -1,3 +1,4 @@
+# This docker-compose.yaml is meant for test purposes only
 version: '3.8'
 
 services:
@@ -12,7 +13,7 @@ services:
     restart: unless-stopped
 
   scraper:
-    image: registry.github.com/papetier/scraper:v0.1.0
+    image: ghcr.io/papetier/scraper:v0.1.0
     environment:
       - LOG_LEVEL=debug
       - POSTGRES_DATABASE=postgres
