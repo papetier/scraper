@@ -22,7 +22,7 @@ func SetupCollector(c *colly.Collector) {
 }
 
 func entryParser(e *colly.XMLElement) {
-	title := e.ChildText("title")
+	title := strings.TrimSpace(e.ChildText("title"))
 	if title == arxivErrorTitle {
 		handleErrorEntry(e)
 		return
@@ -37,7 +37,7 @@ func entryParser(e *colly.XMLElement) {
 	}
 
 	// parse id
-	id := e.ChildText("id")
+	id := strings.TrimSpace(e.ChildText("id"))
 	idParsingResult := strings.Split(id, arxivAbstractUrl)
 	if len(idParsingResult) < 2 {
 		log.Errorf("unexpected arxiv id format: %s", id)
@@ -50,17 +50,17 @@ func entryParser(e *colly.XMLElement) {
 	}
 
 	// parse doi
-	doi := e.ChildText("arxiv:doi")
+	doi := strings.TrimSpace(e.ChildText("arxiv:doi"))
 	if doi != "" {
 		paper.Doi = &doi
 	}
 
 	// parse abstract
-	abstract := e.ChildText("summary")
+	abstract := strings.TrimSpace(e.ChildText("summary"))
 	paper.Abstract = abstract
 
 	// parse journal_ref
-	journalRef := e.ChildText("arxiv:journal_ref")
+	journalRef := strings.TrimSpace(e.ChildText("arxiv:journal_ref"))
 	if journalRef != "" {
 		paper.JournalRef = &journalRef
 	}
@@ -95,19 +95,19 @@ func entryParser(e *colly.XMLElement) {
 	}
 
 	// parse comment
-	comment := e.ChildText("arxiv:comment")
+	comment := strings.TrimSpace(e.ChildText("arxiv:comment"))
 	if comment != "" {
 		arxivEprint.Comment = &comment
 	}
 
 	// parse pdf_link (if different from default)
-	pdfLink := e.ChildAttr("link[@title='pdf']", "href")
+	pdfLink := strings.TrimSpace(e.ChildAttr("link[@title='pdf']", "href"))
 	if pdfLink != arxivPdfUrl+arxivEprint.ArxivId {
 		arxivEprint.PdfLink = &pdfLink
 	}
 
 	// parse published
-	publishedAtRaw := e.ChildText("published")
+	publishedAtRaw := strings.TrimSpace(e.ChildText("published"))
 	publishedAt, err := time.Parse(time.RFC3339, publishedAtRaw)
 	if err != nil {
 		log.Errorf("parsing published date for %s : %s", arxivEprint.ArxivId, err)
@@ -115,7 +115,7 @@ func entryParser(e *colly.XMLElement) {
 	arxivEprint.PublishedAt = publishedAt
 
 	// parse updated
-	updatedAtRaw := e.ChildText("updated")
+	updatedAtRaw := strings.TrimSpace(e.ChildText("updated"))
 	updatedAt, err := time.Parse(time.RFC3339, updatedAtRaw)
 	if err != nil {
 		log.Errorf("parsing updated date for %s : %s", arxivEprint.ArxivId, err)
@@ -138,9 +138,10 @@ func entryParser(e *colly.XMLElement) {
 	// parse categories (with primary) + extra categories
 	var otherArxivCategories []*database.ArxivCategory
 	var extraCategories []string
-	primaryCategoryCode := e.ChildAttr("arxiv:primary_category", "term")
+	primaryCategoryCode := strings.TrimSpace(e.ChildAttr("arxiv:primary_category", "term"))
 	categoryCodeList := e.ChildAttrs("category", "term")
-	for _, categoryCode := range categoryCodeList {
+	for _, categoryCodeRaw := range categoryCodeList {
+		categoryCode := strings.TrimSpace(categoryCodeRaw)
 		if arxivCategory, exists := categoriesByCodeMap[categoryCode]; exists {
 			if categoryCode == primaryCategoryCode {
 				arxivEprint.PrimaryArxivCategory = arxivCategory
@@ -170,7 +171,7 @@ func getAuthorNameAndAffiliation(e *colly.XMLElement, authorIndex int) (string, 
 	xpathQuery := "author[" + strconv.Itoa(authorIndex) + "]"
 	name := e.ChildText(xpathQuery + "/name")
 	affiliation := e.ChildText(xpathQuery + "/arxiv:affiliation")
-	return name, affiliation
+	return strings.TrimSpace(name), strings.TrimSpace(affiliation)
 }
 
 func handleErrorEntry(e *colly.XMLElement) {
