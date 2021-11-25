@@ -11,7 +11,7 @@ type Environment string
 
 const (
 	DefaultEnvironment = "local"
-	EnvironmentKey     = "scraper_ENVIRONMENT"
+	EnvironmentKey     = "SCRAPER_ENVIRONMENT"
 )
 
 func Load() {
