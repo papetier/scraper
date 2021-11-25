@@ -18,10 +18,10 @@ import (
 type Build mg.Namespace
 
 const (
-	binaryPath      = buildPath + "/waiter"
-	binaryPathLocal = buildPath + "/waiter_local"
+	binaryPath      = buildPath + "/scraper"
+	binaryPathLocal = buildPath + "/scraper_local"
 	buildPath       = "build"
-	cmdPath         = "./cmd/server"
+	cmdPath         = "./cmd/scraper"
 	packageName     = "github.com/papetier/scraper"
 	prodArch        = "amd64"
 	prodOs          = "linux"
