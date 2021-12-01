@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	config.Load()
+	config.LoadOrPrintVersion()
 
 	// connect to the DB
 	database.Connect()

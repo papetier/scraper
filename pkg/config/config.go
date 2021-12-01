@@ -1,10 +1,14 @@
 package config
 
 import (
+	"fmt"
 	"github.com/papetier/scraper/pkg/logger"
+	"github.com/papetier/scraper/pkg/version"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"os"
+	"runtime"
 )
 
 type Environment string
@@ -12,9 +16,25 @@ type Environment string
 const (
 	DefaultEnvironment = "local"
 	EnvironmentKey     = "SCRAPER_ENVIRONMENT"
+	versionFormat      = "Papetier scraper version %s (commit: %s, date: %s, go version: %s, platform: %s/%s)\n"
 )
 
-func Load() {
+func LoadOrPrintVersion() {
+	// parse flags
+	parseFlags()
+
+	// print version and stop
+	shouldPrintVersion := viper.GetBool("version")
+	if shouldPrintVersion {
+		fmt.Printf(versionFormat, version.Version, version.CommitShortHash, version.Time, runtime.Version(), version.Os, version.Arch)
+		os.Exit(0)
+	}
+
+	// or continue loading the environment
+	load()
+}
+
+func load() {
 	// set environment
 	environment := os.Getenv(EnvironmentKey)
 	if environment == "" {
@@ -57,4 +77,13 @@ func Load() {
 	loadDbConfig()
 
 	log.Infof("%s config successfully loaded", environment)
+}
+
+func parseFlags() {
+	pflag.BoolP("version", "v", false, "prints the version")
+	pflag.Parse()
+	err := viper.BindPFlags(pflag.CommandLine)
+	if err != nil {
+		log.Fatalf("could not bind the flags to the config: %s", err)
+	}
 }
