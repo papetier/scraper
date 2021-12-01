@@ -24,7 +24,6 @@ const (
 	buildPath              = "build"
 	cmdPath                = "./cmd/scraper"
 	packageName            = "github.com/papetier/scraper"
-	printBaseCommandEnvKey = "MAGE_PRINT_BASE_COMMAND"
 	prodArch               = "amd64"
 	prodOs                 = "linux"
 	semverTagPattern       = `v([0-9]+)\.([0-9]+)\.([0-9]+)`
@@ -69,12 +68,6 @@ func (Build) Env() error {
 	}
 	ldFlags := getXLdflags(goarch, goos)
 
-	// only print base command (for GitHub CI)
-	shouldPrintBaseCommand := os.Getenv(printBaseCommandEnvKey)
-	if shouldPrintBaseCommand == "true" {
-		fmt.Printf("go build -v -ldflags %s", ldFlags)
-		return nil
-	}
 	runAndStreamOutput("go", "build", "-v", "-ldflags", ldFlags, "-o", binaryPath, cmdPath)
 	return nil
 }

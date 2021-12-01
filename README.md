@@ -60,3 +60,11 @@ To build a binary compatible with your local machine, you can use the `local` ta
 ````shell
 mage build:local
 ````
+
+#### Env build
+
+To build a binary using the `GOOS` and `GOARCH` environment variables, you can run the following:
+
+````shell
+GOOS=linux GOARCH=arm64 mage build:env
+````
