@@ -10,6 +10,7 @@ import (
 	"github.com/magefile/mage/mg"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -18,13 +19,15 @@ import (
 type Build mg.Namespace
 
 const (
-	binaryPath      = buildPath + "/scraper"
-	binaryPathLocal = buildPath + "/scraper_local"
-	buildPath       = "build"
-	cmdPath         = "./cmd/scraper"
-	packageName     = "github.com/papetier/scraper"
-	prodArch        = "amd64"
-	prodOs          = "linux"
+	binaryPath             = buildPath + "/scraper"
+	binaryPathLocal        = buildPath + "/scraper_local"
+	buildPath              = "build"
+	cmdPath                = "./cmd/scraper"
+	packageName            = "github.com/papetier/scraper"
+	printBaseCommandEnvKey = "MAGE_PRINT_BASE_COMMAND"
+	prodArch               = "amd64"
+	prodOs                 = "linux"
+	semverTagPattern       = `v([0-9]+)\.([0-9]+)\.([0-9]+)`
 )
 
 // Build the production binary (linux/amd64)
@@ -50,6 +53,32 @@ func (Build) Local() error {
 	return nil
 }
 
+// Build a binary for the os/arch target from environment
+func (Build) Env() error {
+	// Go env
+	goarch := os.Getenv("GOARCH")
+	goos := os.Getenv("GOOS")
+	if goarch == "" || goos == "" {
+		return fmt.Errorf("when calling the `build:env` target, you need to set both GOARCH and GOOS environment variables")
+	}
+	err := prepareEnv(goarch, goos)
+
+	// ldflags
+	if err != nil {
+		return err
+	}
+	ldFlags := getXLdflags(goarch, goos)
+
+	// only print base command (for GitHub CI)
+	shouldPrintBaseCommand := os.Getenv(printBaseCommandEnvKey)
+	if shouldPrintBaseCommand == "true" {
+		fmt.Printf("go build -v -ldflags %s", ldFlags)
+		return nil
+	}
+	runAndStreamOutput("go", "build", "-v", "-ldflags", ldFlags, "-o", binaryPath, cmdPath)
+	return nil
+}
+
 func getCommitShortHash() string {
 	commitShortHash, err := runCmdWithOutput("git", "rev-parse", "--short", "HEAD")
 	if err != nil {
@@ -66,12 +95,26 @@ func getXLdflags(buildArch, buildOs string) string {
 }
 
 func getVersion() string {
-	version, err := runCmdWithOutput("git", "describe", "--tags", "--always", "--abbrev=10")
+	tag, err := runCmdWithOutput("git", "describe", "--tags", "--always", "--abbrev=10")
 	if err != nil {
-		fmt.Printf("Error getting version: %s\n", err)
+		fmt.Printf("Error getting git tag: %s\n", err)
 		os.Exit(1)
 	}
-	return strings.Trim(string(version), "\n")
+	cleanedTag := strings.Trim(string(tag), "\n")
+	versionRegexp := regexp.MustCompile(semverTagPattern)
+	result := versionRegexp.FindStringSubmatch(cleanedTag)
+
+	// if invalid v-prefixed semver version tag, return cleaned tag
+	if len(result) < 4 {
+		return cleanedTag
+	}
+
+	// build proper semver-valid version
+	major := result[1]
+	minor := result[2]
+	patch := result[3]
+	version := major + "." + minor + "." + patch
+	return version
 }
 
 func prepareEnv(buildArch, buildOs string) error {

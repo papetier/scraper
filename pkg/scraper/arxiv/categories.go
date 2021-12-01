@@ -15,6 +15,7 @@ const (
 )
 
 var categoriesByCodeMap map[string]*database.ArxivCategory
+var arxivCategoryNameRegexp = regexp.MustCompile(arxivPattern)
 
 func UpdateAndLoadCategories(website *database.Website) error {
 	log.Info("loading categories")
@@ -39,8 +40,6 @@ func categoriesParser(e *colly.HTMLElement) {
 		arxivGroupList = append(arxivGroupList, arxivGroup)
 	}
 
-	arxivNameRegexp := regexp.MustCompile(arxivPattern)
-
 	// group level
 	e.ForEach(".accordion-body", func(groupIndex int, groupBlock *colly.HTMLElement) {
 		var arxivArchiveList []*database.ArxivArchive
@@ -53,7 +52,7 @@ func categoriesParser(e *colly.HTMLElement) {
 
 			archiveFullName := archiveBlock.ChildText("h3")
 			if archiveFullName != "" {
-				result := arxivNameRegexp.FindStringSubmatch(archiveFullName)
+				result := arxivCategoryNameRegexp.FindStringSubmatch(archiveFullName)
 				if len(result) < 3 {
 					log.Fatalf("error when extracting the archive's code and name from `%s`", archiveFullName)
 				}
@@ -75,7 +74,7 @@ func categoriesParser(e *colly.HTMLElement) {
 				// category code + name
 				categoryFullName := categoryBlock.ChildText("h4")
 				if categoryFullName != "" {
-					result := arxivNameRegexp.FindStringSubmatch(categoryFullName)
+					result := arxivCategoryNameRegexp.FindStringSubmatch(categoryFullName)
 					if len(result) < 3 {
 						log.Fatalf("error when extracting the category's code and name from `%s`", categoryFullName)
 					}
