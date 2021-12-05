@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"os"
-	"runtime"
 )
 
 type Environment string
@@ -16,7 +15,6 @@ type Environment string
 const (
 	DefaultEnvironment = "local"
 	EnvironmentKey     = "SCRAPER_ENVIRONMENT"
-	versionFormat      = "Papetier scraper version %s (commit: %s, date: %s, go version: %s, platform: %s/%s)\n"
 )
 
 func LoadOrPrintVersion() {
@@ -26,7 +24,7 @@ func LoadOrPrintVersion() {
 	// print version and stop
 	shouldPrintVersion := viper.GetBool("version")
 	if shouldPrintVersion {
-		fmt.Printf(versionFormat, version.Version, version.CommitShortHash, version.Time, runtime.Version(), version.Os, version.Arch)
+		fmt.Println(version.String())
 		os.Exit(0)
 	}
 
