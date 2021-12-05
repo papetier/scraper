@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"github.com/gocolly/colly/v2"
 	"github.com/papetier/scraper/pkg/database"
 	"github.com/papetier/scraper/pkg/scraper/arxiv"
 	"github.com/papetier/scraper/pkg/scraper/collector"
@@ -28,7 +29,7 @@ func scrape(website *database.Website, wg *sync.WaitGroup) {
 	defer wg.Done()
 	log.Infof("Scraping %s...", website.Name)
 
-	wc := collector.GetWebsiteCollector(website)
+	wc := collector.GetWebsiteCollector(website, colly.AllowURLRevisit())
 
 	// websites specific collector settings
 	switch website.Name {
@@ -41,8 +42,15 @@ func scrape(website *database.Website, wg *sync.WaitGroup) {
 		arxiv.SetupCollector(wc.Collector)
 	}
 
-	// run the collector
+	// on initial urls
 	for _, initUrl := range website.InitUrlList {
 		wc.AddUrl(initUrl)
+	}
+
+	// on category list for arXiv
+	for _, category := range website.CategoryList {
+		if website.Name == "arXiv" {
+			arxiv.SearchCategory(wc, category)
+		}
 	}
 }

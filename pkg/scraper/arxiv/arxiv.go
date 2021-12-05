@@ -16,6 +16,8 @@ const (
 	arxivErrorTitle  = "Error"
 )
 
+var duplicatedPaperCounter = 0
+
 func SetupCollector(c *colly.Collector) {
 	c.OnXML("/feed/entry", entryParser)
 
@@ -161,7 +163,12 @@ func entryParser(e *colly.XMLElement) {
 		}
 	}
 
-	err = arxivEprint.SaveWithPaperAuthorsAndCategories()
+	isDuplicate, err := arxivEprint.SaveWithPaperAuthorsAndCategories()
+	if isDuplicate {
+		duplicatedPaperCounter++
+	} else {
+		duplicatedPaperCounter = 0
+	}
 	if err != nil {
 		log.Errorf("saving the arXiv's eprint: %s", err)
 	}

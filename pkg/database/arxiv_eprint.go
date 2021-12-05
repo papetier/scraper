@@ -52,42 +52,62 @@ var arxivEprintsArxivCategoriesColumns = []string{
 	"is_primary",
 }
 
-func (a *ArxivEprint) SaveWithPaperAuthorsAndCategories() error {
+func (a *ArxivEprint) SaveWithPaperAuthorsAndCategories() (bool, error) {
 	log.Debugf("saving arXiv's eprint `%s` with related paper and authors", a.ArxivId)
+
+	// check if eprint already exists in DB
+	// because of error not visible in transaction
+	countQuery := "SELECT COUNT(*) FROM " + arxivEprintsTable + " WHERE arxiv_id = $1"
+	rows, err := dbConnection.Pool.Query(context.Background(), countQuery, a.ArxivId)
+	defer rows.Close()
+	if err!=nil {
+		return false, fmt.Errorf("counting existing arxiv_id (%s): %w", a.ArxivId, err)
+	}
+	for rows.Next() {
+		var count int
+		err = rows.Scan(&count)
+		if err != nil {
+			return false, fmt.Errorf("scanning the count result: %w", err)
+		}
+		if count > 0 {
+			return true, nil
+		}
+	}
+
 
 	// prepare transaction
 	tx, err := dbConnection.Pool.Begin(context.Background())
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer tx.Rollback(context.Background())
 
 	// save authors w/ organisations
 	err = saveAuthorsWithOrganisationsTx(tx, a.Paper.Authors)
 	if err != nil {
-		return fmt.Errorf("saving the authors with their organisations associated with the arXiv's eprint's `%s`: %w", a.ArxivId, err)
+		return false, fmt.Errorf("saving the authors with their organisations associated with the arXiv's eprint's `%s`: %w", a.ArxivId, err)
 	}
 
 	// save paper with author links (and author order)
 	err = a.Paper.SaveWithAuthorsTx(tx)
 	if err != nil {
-		return fmt.Errorf("saving the paper associated with the arXiv's eprint `%s`: %w", a.ArxivId, err)
+		return false, fmt.Errorf("saving the paper associated with the arXiv's eprint `%s`: %w", a.ArxivId, err)
 	}
 	a.PaperId = a.Paper.Id
 
 	// save arxiv_eprint with categories
 	err = a.saveWithCategoriesTx(tx)
 	if err != nil {
-		return fmt.Errorf("saving the arXiv's eprint `%s` with categories: %w", a.ArxivId, err)
+		return false, fmt.Errorf("saving the arXiv's eprint `%s` with categories: %w", a.ArxivId, err)
 	}
 
 	// commit transaction
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return fmt.Errorf("committing the transaction to save the arXiv's eprint `%s`, paper and authors: %w", a.ArxivId, err)
+		return false, fmt.Errorf("committing the transaction to save the arXiv's eprint `%s`, paper and authors: %w", a.ArxivId, err)
 	}
 
-	return nil
+	return false, nil
 }
 
 func (a *ArxivEprint) saveWithCategoriesTx(tx pgx.Tx) error {

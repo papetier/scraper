@@ -13,7 +13,10 @@ type WebsiteCollector struct {
 }
 
 func (wc *WebsiteCollector) AddUrl(url string) {
-	wc.Collector.Visit(url)
+	err := wc.Collector.Visit(url)
+	if err != nil {
+		log.Errorf("error visiting %s: %s", url, err)
+	}
 }
 
 func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOption) *WebsiteCollector {
