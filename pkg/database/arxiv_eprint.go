@@ -60,7 +60,7 @@ func (a *ArxivEprint) SaveWithPaperAuthorsAndCategories() (bool, error) {
 	countQuery := "SELECT COUNT(*) FROM " + arxivEprintsTable + " WHERE arxiv_id = $1"
 	rows, err := dbConnection.Pool.Query(context.Background(), countQuery, a.ArxivId)
 	defer rows.Close()
-	if err!=nil {
+	if err != nil {
 		return false, fmt.Errorf("counting existing arxiv_id (%s): %w", a.ArxivId, err)
 	}
 	for rows.Next() {
@@ -73,7 +73,6 @@ func (a *ArxivEprint) SaveWithPaperAuthorsAndCategories() (bool, error) {
 			return true, nil
 		}
 	}
-
 
 	// prepare transaction
 	tx, err := dbConnection.Pool.Begin(context.Background())

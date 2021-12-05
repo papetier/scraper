@@ -18,6 +18,7 @@ func SearchCategory(wc *collector.WebsiteCollector, categoryCode string) {
 	category, present := categoriesByCodeMap[categoryCode]
 	if !present {
 		log.Errorf("unknown arXiv category code: %s", categoryCode)
+		return
 	}
 
 	start := 0
