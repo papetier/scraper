@@ -166,6 +166,7 @@ func entryParser(e *colly.XMLElement) {
 	isDuplicate, err := arxivEprint.SaveWithPaperAuthorsAndCategories()
 	if isDuplicate {
 		duplicatedPaperCounter++
+		log.Warnf("arXiv's eprint %s was already saved, skipping", arxivEprint.ArxivId)
 	} else {
 		duplicatedPaperCounter = 0
 	}

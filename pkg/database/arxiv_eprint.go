@@ -106,6 +106,7 @@ func (a *ArxivEprint) SaveWithPaperAuthorsAndCategories() (bool, error) {
 		return false, fmt.Errorf("committing the transaction to save the arXiv's eprint `%s`, paper and authors: %w", a.ArxivId, err)
 	}
 
+	log.Infof("successfully saved arXiv's eprint %s", a.ArxivId)
 	return false, nil
 }
 
