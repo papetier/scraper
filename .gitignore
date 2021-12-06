@@ -21,3 +21,6 @@ build
 
 # Sample files
 samples/
+
+# Log files
+logs/
