@@ -30,9 +30,29 @@ func GetWebsites() ([]*Website, error) {
 	}
 
 	for _, website := range websiteList {
-		website.CategoryList = strings.Split(website.CategoryListRaw, ",")
-		website.DomainList = strings.Split(website.DomainListRaw, ",")
-		website.InitUrlList = strings.Split(website.InitUrlListRaw, ",")
+		// categories to scrape
+		categoryList := strings.Split(website.CategoryListRaw, ",")
+		for _, category := range categoryList {
+			if category != "" {
+				website.CategoryList = append(website.CategoryList, category)
+			}
+		}
+
+		// allowed domains
+		domainList := strings.Split(website.DomainListRaw, ",")
+		for _, domain := range domainList {
+			if domain != "" {
+				website.DomainList = append(website.DomainList, domain)
+			}
+		}
+
+		// initial urls
+		initUrlList := strings.Split(website.InitUrlListRaw, ",")
+		for _, initUrl := range initUrlList {
+			if initUrl != "" {
+				website.InitUrlList = append(website.InitUrlList, initUrl)
+			}
+		}
 	}
 
 	return websiteList, nil
