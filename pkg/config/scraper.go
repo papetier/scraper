@@ -7,7 +7,7 @@ import (
 
 type ScraperConfig struct {
 	IsInsecureHttpAccepted bool
-	HttpTimeout            time.Duration
+	RequestTimeout         time.Duration
 }
 
 var Scraper *ScraperConfig
@@ -15,6 +15,6 @@ var Scraper *ScraperConfig
 func loadScraperConfig() {
 	Scraper = &ScraperConfig{
 		IsInsecureHttpAccepted: viper.GetBool("SCRAPER_ACCEPT_INSECURE_HTTP"),
-		HttpTimeout:            viper.GetDuration("SCRAPER_HTTP_TIMEOUT"),
+		RequestTimeout:         viper.GetDuration("SCRAPER_REQUEST_TIMEOUT"),
 	}
 }

@@ -18,5 +18,5 @@ func setDefaultConfigValues() {
 
 	// scraper defaults
 	viper.SetDefault("SCRAPER_ACCEPT_INSECURE_HTTP", false)
-	viper.SetDefault("SCRAPER_HTTP_TIMEOUT", 30*time.Second)
+	viper.SetDefault("SCRAPER_REQUEST_TIMEOUT", 30*time.Second)
 }

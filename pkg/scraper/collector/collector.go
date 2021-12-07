@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net"
 	"net/http"
+	"time"
 )
 
 type WebsiteCollector struct {
@@ -29,16 +30,28 @@ func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOp
 	collectorOptions = append(collectorOptions, colly.AllowedDomains(website.DomainList...))
 	c := colly.NewCollector(collectorOptions...)
 
-	// http security level
+	// http settings
 	c.WithTransport(&http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Scraper.IsInsecureHttpAccepted},
 		DialContext: (&net.Dialer{
-			Timeout: config.Scraper.HttpTimeout,
+			Timeout: config.Scraper.RequestTimeout,
 		}).DialContext,
 	})
+	c.SetRequestTimeout(config.Scraper.RequestTimeout)
+
+	// slow down colly to avoid saturating arXiv
+	// following https://arxiv.org/help/api/tou#limitations
+	err := c.Limit(&colly.LimitRule{
+		DomainGlob:  "*arxiv*",
+		Parallelism: 1,
+		Delay:       3 * time.Second,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// storage set up
-	err := c.SetStorage(storage.DbStorage)
+	err = c.SetStorage(storage.DbStorage)
 	if err != nil {
 		log.Fatal(err)
 	}
