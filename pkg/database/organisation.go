@@ -66,7 +66,7 @@ func saveOrganisationsTx(tx pgx.Tx, organisationList []*Organisation) error {
 
 func fetchAndUpdateOrganisationIdsTx(tx pgx.Tx, organisationList []*Organisation) error {
 	placeholder := generateInsertPlaceholder(len(organisationList), 1, 1)
-	query := "SELECT id, full_name FROM " + authorsTable + " WHERE full_name IN " + placeholder
+	query := "SELECT id, name FROM " + organisationsTable + " WHERE name IN " + placeholder
 	var parameters []interface{}
 	for _, organisation := range organisationList {
 		parameters = append(parameters, organisation.Name)

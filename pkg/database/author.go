@@ -169,7 +169,7 @@ func saveAuthorsOrganisationsTx(tx pgx.Tx, authorList []*Author) error {
 	}
 
 	authorLinkPlaceholder := generateInsertPlaceholder(len(authorsOrganisationsColumns), linkCount, 1)
-	authorLinksQuery := "INSERT INTO " + authorsOrganisationsTable + " (" + strings.Join(authorsOrganisationsColumns, ", ") + ") VALUES " + authorLinkPlaceholder
+	authorLinksQuery := "INSERT INTO " + authorsOrganisationsTable + " (" + strings.Join(authorsOrganisationsColumns, ", ") + ") VALUES " + authorLinkPlaceholder + " ON CONFLICT DO NOTHING"
 
 	authorLinkRows, err := tx.Query(context.Background(), authorLinksQuery, authorOrganisationLinkValues...)
 	defer authorLinkRows.Close()
