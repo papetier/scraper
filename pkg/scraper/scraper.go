@@ -10,7 +10,6 @@ import (
 	"sync"
 )
 
-
 func Setup() {
 	storage.SetupSDBStorage()
 }
@@ -48,9 +47,5 @@ func scrape(website *database.Website, wg *sync.WaitGroup) {
 	}
 
 	// on category list for arXiv
-	for _, category := range website.CategoryList {
-		if website.Name == "arXiv" {
-			arxiv.SearchCategory(wc, category)
-		}
-	}
+	arxiv.SearchCategoryList(wc)
 }

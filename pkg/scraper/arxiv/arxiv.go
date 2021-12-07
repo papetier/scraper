@@ -1,6 +1,7 @@
 package arxiv
 
 import (
+	"github.com/antchfx/xmlquery"
 	"github.com/gocolly/colly/v2"
 	"github.com/papetier/scraper/pkg/database"
 	log "github.com/sirupsen/logrus"
@@ -16,11 +17,29 @@ const (
 	arxivErrorTitle  = "Error"
 )
 
-var duplicatedPaperCounter = 0
-
 func SetupCollector(c *colly.Collector) {
+	c.OnXML("/feed", feedParser)
 	c.OnXML("/feed/entry", entryParser)
+}
 
+func feedParser(e *colly.XMLElement) {
+	// get category code
+	feedTitle := e.ChildText("title")
+	categoryCode := getCategoryCodeFromSearchFeedTitle(feedTitle)
+	if categoryCode == nil {
+		log.Errorf("no category found in feed title %s", feedTitle)
+		return
+	}
+
+	// get first entry if exists
+	firstEntry := xmlquery.FindOne(e.DOM.(*xmlquery.Node), "entry")
+
+	// set isLastResultEmpty for this category
+	if firstEntry == nil {
+		isLastResultEmptyByCategoryCode[*categoryCode] = true
+	} else {
+		isLastResultEmptyByCategoryCode[*categoryCode] = false
+	}
 }
 
 func entryParser(e *colly.XMLElement) {
@@ -29,6 +48,9 @@ func entryParser(e *colly.XMLElement) {
 		handleErrorEntry(e)
 		return
 	}
+
+	// get category code
+	canonicalCategoryCode := getCategoryCodeFromSearchFeedTitle(title)
 
 	// initialise paper + arxiv eprint
 	paper := &database.Paper{
@@ -164,11 +186,13 @@ func entryParser(e *colly.XMLElement) {
 	}
 
 	isDuplicate, err := arxivEprint.SaveWithPaperAuthorsAndCategories()
-	if isDuplicate {
-		duplicatedPaperCounter++
-		log.Warnf("arXiv's eprint %s was already saved, skipping", arxivEprint.ArxivId)
-	} else {
-		duplicatedPaperCounter = 0
+	if canonicalCategoryCode != nil {
+		if isDuplicate {
+			duplicatedPaperCounterByCategoryCode[*canonicalCategoryCode]++
+			log.Warnf("arXiv's eprint %s was already saved, skipping", arxivEprint.ArxivId)
+		} else {
+			duplicatedPaperCounterByCategoryCode[*canonicalCategoryCode] = 0
+		}
 	}
 	if err != nil {
 		log.Errorf("saving the arXiv's eprint: %s", err)
