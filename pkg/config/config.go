@@ -74,6 +74,9 @@ func load() {
 	// DB config
 	loadDbConfig()
 
+	// scraper
+	loadScraperConfig()
+
 	log.Infof("%s config successfully loaded", environment)
 }
 

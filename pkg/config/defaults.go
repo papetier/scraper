@@ -12,4 +12,7 @@ func setDefaultConfigValues() {
 	viper.SetDefault("POSTGRES_PORT", 5432)
 	viper.SetDefault("POSTGRES_PASSWORD", "postgres")
 	viper.SetDefault("POSTGRES_USER", "postgres")
+
+	// scraper defaults
+	viper.SetDefault("SCRAPER_ACCEPT_INSECURE_HTTP", false)
 }
