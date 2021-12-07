@@ -56,6 +56,19 @@ func saveAuthorsWithOrganisationsTx(tx pgx.Tx, authorList []*Author) error {
 		}
 	}
 
+	// re-map author's organisations
+	// if several authors had same organisation
+	for _, author := range authorList {
+		for i, authorOrganisation := range author.Organisations {
+			for _, organisation := range organisationList {
+				if organisation.Name == authorOrganisation.Name {
+					author.Organisations[i] = organisation
+					break
+				}
+			}
+		}
+	}
+
 	// save authors
 	err := saveAuthorsTx(tx, authorList)
 	if err != nil {
