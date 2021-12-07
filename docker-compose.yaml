@@ -16,9 +16,12 @@ services:
     image: ghcr.io/papetier/scraper:v0.1.0
     environment:
       - LOG_LEVEL=debug
+      - LOG_ERROR_FILE=/logs/error.log
       - POSTGRES_DATABASE=postgres
       - POSTGRES_HOST=timescale
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
+    volumes:
+      - ./logs/:/logs
     restart: unless-stopped
