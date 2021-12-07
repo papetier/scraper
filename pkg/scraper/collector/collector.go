@@ -1,10 +1,14 @@
 package collector
 
 import (
+	"crypto/tls"
 	"github.com/gocolly/colly/v2"
+	"github.com/papetier/scraper/pkg/config"
 	"github.com/papetier/scraper/pkg/database"
 	"github.com/papetier/scraper/pkg/scraper/storage"
 	log "github.com/sirupsen/logrus"
+	"net"
+	"net/http"
 )
 
 type WebsiteCollector struct {
@@ -24,6 +28,14 @@ func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOp
 	collectorOptions := options
 	collectorOptions = append(collectorOptions, colly.AllowedDomains(website.DomainList...))
 	c := colly.NewCollector(collectorOptions...)
+
+	// http security level
+	c.WithTransport(&http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Scraper.IsInsecureHttpAccepted},
+		DialContext: (&net.Dialer{
+			Timeout: config.Scraper.HttpTimeout,
+		}).DialContext,
+	})
 
 	// storage set up
 	err := c.SetStorage(storage.DbStorage)

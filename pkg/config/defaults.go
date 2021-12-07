@@ -1,6 +1,9 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+	"time"
+)
 
 func setDefaultConfigValues() {
 	// logger defaults
@@ -15,4 +18,5 @@ func setDefaultConfigValues() {
 
 	// scraper defaults
 	viper.SetDefault("SCRAPER_ACCEPT_INSECURE_HTTP", false)
+	viper.SetDefault("SCRAPER_HTTP_TIMEOUT", 30*time.Second)
 }
