@@ -33,19 +33,20 @@ func scrape(website *database.Website, wg *sync.WaitGroup) {
 	// websites specific collector settings
 	switch website.Name {
 	case "arXiv":
+		// get updated arXiv categories
 		err := arxiv.UpdateAndLoadCategories(website)
 		if err != nil {
 			log.Fatal(err)
 		}
 		log.Info("categories successfully loaded --------- now starting scraper!")
+
+		// set up arXiv collector
 		arxiv.SetupCollector(wc.Collector)
-	}
 
-	// on initial urls
-	for _, initUrl := range website.InitUrlList {
-		wc.AddUrl(initUrl)
-	}
+		// visit init URLs
+		arxiv.VisitInitUrlList(wc)
 
-	// on category list for arXiv
-	arxiv.SearchCategoryList(wc)
+		// launch search on categories
+		arxiv.SearchCategoryList(wc)
+	}
 }

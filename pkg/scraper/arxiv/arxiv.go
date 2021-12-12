@@ -3,7 +3,9 @@ package arxiv
 import (
 	"github.com/antchfx/xmlquery"
 	"github.com/gocolly/colly/v2"
+	"github.com/papetier/scraper/pkg/config"
 	"github.com/papetier/scraper/pkg/database"
+	"github.com/papetier/scraper/pkg/scraper/collector"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
@@ -20,6 +22,12 @@ const (
 func SetupCollector(c *colly.Collector) {
 	c.OnXML("/feed", feedParser)
 	c.OnXML("/feed/entry", entryParser)
+}
+
+func VisitInitUrlList(wc *collector.WebsiteCollector) {
+	for _, initUrl := range config.Arxiv.InitUrlList {
+		wc.AddUrl(initUrl)
+	}
 }
 
 func feedParser(e *colly.XMLElement) {

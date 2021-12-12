@@ -27,10 +27,8 @@ func SearchCategoryList(wc *collector.WebsiteCollector) {
 	duplicatedPaperCounterByCategoryCode = make(map[string]int)
 	isLastResultEmptyByCategoryCode = make(map[string]bool)
 
-	for _, category := range wc.Website.CategoryList {
-		if wc.Website.Name == "arXiv" {
-			searchCategory(wc, category)
-		}
+	for _, category := range config.Arxiv.CategoryList {
+		searchCategory(wc, category)
 	}
 }
 
