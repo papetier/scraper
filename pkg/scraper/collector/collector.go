@@ -32,12 +32,12 @@ func GetWebsiteCollector(website *database.Website, options ...colly.CollectorOp
 
 	// http settings
 	c.WithTransport(&http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Scraper.IsInsecureHttpAccepted},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: config.Arxiv.IsInsecureHttpAccepted},
 		DialContext: (&net.Dialer{
-			Timeout: config.Scraper.RequestTimeout,
+			Timeout: config.Arxiv.RequestTimeout,
 		}).DialContext,
 	})
-	c.SetRequestTimeout(config.Scraper.RequestTimeout)
+	c.SetRequestTimeout(config.Arxiv.RequestTimeout)
 
 	// slow down colly to avoid saturating arXiv
 	// following https://arxiv.org/help/api/tou#limitations

@@ -16,7 +16,12 @@ func setDefaultConfigValues() {
 	viper.SetDefault("POSTGRES_PASSWORD", "postgres")
 	viper.SetDefault("POSTGRES_USER", "postgres")
 
-	// scraper defaults
-	viper.SetDefault("SCRAPER_ACCEPT_INSECURE_HTTP", false)
-	viper.SetDefault("SCRAPER_REQUEST_TIMEOUT", 30*time.Second)
+	// arXiv scraper defaults
+	viper.SetDefault("ARXIV_ACCEPT_INSECURE_HTTP", false)
+	viper.SetDefault("ARXIV_REQUEST_TIMEOUT", 30*time.Second)
+	viper.SetDefault("ARXIV_DUPLICATED_THRESHOLD", 3)
+	viper.SetDefault("ARXIV_MAX_RESULTS", 1000)
+	viper.SetDefault("ARXIV_SEARCH_START", 0)
+	viper.SetDefault("ARXIV_SORT_BY", "submittedDate")
+	viper.SetDefault("ARXIV_SORT_ORDER", "ascending")
 }

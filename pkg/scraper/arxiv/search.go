@@ -2,6 +2,7 @@ package arxiv
 
 import (
 	"fmt"
+	"github.com/papetier/scraper/pkg/config"
 	"github.com/papetier/scraper/pkg/scraper/collector"
 	log "github.com/sirupsen/logrus"
 	"regexp"
@@ -11,9 +12,6 @@ import (
 const (
 	arxivBaseSearchUrl         = "http://export.arxiv.org/api/query?search_query="
 	arxivQueryPattern          = "%scat:%s&start=%d&max_results=%d&sortBy=%s&sortOrder=%s"
-	defaultMaxResults          = 1000
-	defaultSortBy              = "submittedDate"
-	defaultSortOrder           = "ascending"
 	searchQueryCategoryPattern = `cat:(.+)`
 	searchQueryTitlePattern    = `(.*): search_query=(.*)&id_list=(.*)&start=(\d+)&max_results=(\d+)`
 )
@@ -43,11 +41,13 @@ func searchCategory(wc *collector.WebsiteCollector, categoryCode string) {
 		return
 	}
 
-	start := 0
-	for duplicatedPaperCounterByCategoryCode[categoryCode] < 3 && !isLastResultEmptyByCategoryCode[categoryCode] {
-		queryString := fmt.Sprintf(arxivQueryPattern, arxivBaseSearchUrl, category.OriginalArxivCategoryCode, start, defaultMaxResults, defaultSortBy, defaultSortOrder)
+	ac := config.Arxiv
+
+	start := ac.SearchStart
+	for duplicatedPaperCounterByCategoryCode[categoryCode] < ac.DuplicatedThreshold && !isLastResultEmptyByCategoryCode[categoryCode] {
+		queryString := fmt.Sprintf(arxivQueryPattern, arxivBaseSearchUrl, category.OriginalArxivCategoryCode, start, ac.MaxResults, ac.SortBy, ac.SortOrder)
 		wc.AddUrl(queryString)
-		start += defaultMaxResults
+		start += ac.MaxResults
 	}
 
 	if isLastResultEmptyByCategoryCode[categoryCode] {
