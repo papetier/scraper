@@ -57,7 +57,7 @@ jobs:
           zip scraper-${{ steps.semver.outputs.non-prefixed }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip scraper
 
       - name: Upload asset
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: assets
           path: build/scraper-${{ steps.semver.outputs.non-prefixed }}-${{ matrix.goos }}-${{ matrix.goarch }}.zip
