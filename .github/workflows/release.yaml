@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Check out the repo
         id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
 
       - name: Get version
         id: semver
@@ -72,7 +72,7 @@ jobs:
     steps:
       - name: Check out the repo
         id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
 
       - name: Get version
         id: semver
@@ -103,7 +103,7 @@ jobs:
     steps:
       - name: Check out the repo
         id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.1.0
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
